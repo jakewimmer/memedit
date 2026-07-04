@@ -72,15 +72,22 @@ function memedit:load(options)
 		end
 	end
 
+	-- Route the native library through the loader's platform module. On Windows
+	-- this stays byte-for-byte the mod-directory-relative "memedit.dll"; on Linux
+	-- it loads "./memedit.so" from the game root, where install.sh stages every
+	-- native artifact (dlopen resolves it cwd-relative, so no mod-dir prefix).
+	local library = Platform.nativeLibrary("memedit")
+	local libraryPath = Platform.name == "windows" and (path .. library) or library
+
 	try(function()
-		package.loadlib(path.."memedit.dll", "luaopen_memedit")(options)
+		package.loadlib(libraryPath, "luaopen_memedit")(options)
 		self.dll = memeditdll
 		memeditdll = nil
 	end)
 	:catch(function(err)
 		error(string.format(
-				"Memdit - Failed to load memedit.dll: %s",
-				tostring(err)
+				"Memedit - Failed to load %s: %s",
+				library, tostring(err)
 		))
 	end)
 
@@ -105,11 +112,18 @@ local function configureAddresses(filename, func)
 	persistence.store(filename, obj)
 end
 
+-- Field offsets are ABI/platform-specific, so each platform keeps its own table.
+-- Windows uses the upstream "__addresses.lua"; Linux uses "__addresses_linux.lua".
+function memedit:addressesFilename()
+	local file = Platform.name == "windows" and "__addresses.lua" or "__addresses_linux.lua"
+	return path .. file
+end
+
 function memedit:loadAddressesFromFile()
 	local result = nil
 
 	configureAddresses(
-		path.."__addresses.lua",
+		self:addressesFilename(),
 		function(obj)
 			for version, addresses in pairs(obj) do
 				if version == modApi.gameVersion then
@@ -125,7 +139,7 @@ end
 
 function memedit:saveAddressesToFile(addressList)
 	configureAddresses(
-		path.."__addresses.lua",
+		self:addressesFilename(),
 		function(obj)
 			local versionBucket = obj[modApi.gameVersion]
 
