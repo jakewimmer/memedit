@@ -148,7 +148,7 @@ local Scan = newClass{
 		local results = self.results
 
 		local function isListEqual(base, delta)
-			local vecAddr = dll.debug.getAddrInt(base + delta)
+			local vecAddr = dll.debug.getAddrLong(base + delta)
 
 			if dll.debug.isAddrNotPointer(vecAddr, #val * step) then
 				return false
@@ -251,8 +251,9 @@ local Scan = newClass{
 		end
 
 		local boardAddr = dll.debug.getObjAddr(Board)
-		local rowAddr = dll.debug.getAddrInt(boardAddr + vital.delta_rows)
-		local columnAddr = dll.debug.getAddrInt(rowAddr + vital.step_rows * p.x)
+		-- 64-bit: rows/columns are 8-byte pointers (getAddrLong).
+		local rowAddr = dll.debug.getAddrLong(boardAddr + vital.delta_rows)
+		local columnAddr = dll.debug.getAddrLong(rowAddr + vital.step_rows * p.x)
 		local tileAddr = columnAddr + vital.size_tile * p.y
 
 		self:search(tileAddr, 0, vital.size_tile, val, dataType)
@@ -272,8 +273,9 @@ local Scan = newClass{
 		end
 
 		local pawnAddr = dll.debug.getObjAddr(pawn)
-		local weaponListAddr = dll.debug.getAddrInt(pawnAddr + vital.delta_weapons)
-		local weaponAddr = dll.debug.getAddrInt(weaponListAddr + weaponIndex * 0x8)
+		-- 64-bit: read 8-byte pointers, and step by 16-byte std::shared_ptr elements.
+		local weaponListAddr = dll.debug.getAddrLong(pawnAddr + vital.delta_weapons)
+		local weaponAddr = dll.debug.getAddrLong(weaponListAddr + weaponIndex * 0x10)
 
 		self:search(weaponAddr, 0, vital.size_weapon, val, dataType)
 	end,

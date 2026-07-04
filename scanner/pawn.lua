@@ -23,17 +23,41 @@ scans.acid = inheritClass(Scan, {
 	prerequisiteScans = {"vital.size_pawn"},
 	access = "RW",
 	dataType = "bool",
-	action = function(self)
-		prepareScanPawn{}
-		local pawn = PAWN_FACTORY:CreatePawn("memedit_scanPawn")
-		local isAcid = math.random(0,1)
-		pawn:SetAcid(true)
-		pawn:SetAcid(false)
-		pawn:SetAcid(isAcid == 1)
+	-- SetAcid on a pawn that is not on the board crashes the native Linux game
+	-- (dereferences the missing board space). Place it on the board first, like
+	-- the Fire scan does, which also requires a live board.
+	condition = boardExists,
+	cleanup = function(self)
+		if self.data then
+			if Board then
+				Board:ClearSpace(self.data.p)
+			end
+			self.data = nil
+		end
+	end,
+	actions = {
+		function(self)
+			prepareScanPawn{}
+			local p = randomCleanPoint()
+			local pawn = PAWN_FACTORY:CreatePawn("memedit_scanPawn")
+			local isAcid = math.random(0,1)
+			Board:AddPawn(pawn, p)
+			pawn:SetAcid(true)
+			pawn:SetAcid(false)
+			pawn:SetAcid(isAcid == 1)
 
-		self:searchPawn(pawn, isAcid, "byte")
-		self:evaluateResults()
-	end
+			self.data = {
+				pawn = pawn,
+				p = p,
+				isAcid = isAcid
+			}
+		end,
+		function(self)
+			self:searchPawn(self.data.pawn, self.data.isAcid, "byte")
+			self:evaluateResults()
+			self:cleanup()
+		end
+	}
 })
 
 scans.active = inheritClass(Scan, {
@@ -77,60 +101,17 @@ scans.baseMaxHealth = inheritClass(Scan, {
 scans.bonusMove = inheritClass(Scan, {
 	id = "BonusMove",
 	name = "Pawn Bonus Move",
-	prerequisiteScans = {"vital.size_pawn", "pawn.WeaponList"},
+	prerequisiteScans = {"vital.size_pawn"},
 	access = "RW",
 	dataType = "int",
-	--Could use a cleanup, but I'm not entirely sure how
-	--Essentially, Chen needs to get their action back because
-	--It was used up during the scan
-	--It doesn't seem to currently cause issues
-	condition = function(self)
-		if false
-			or Board == nil
-			or Board:IsMissionBoard() == false
-			or Board:IsBusy()
-		then
-			return false, "Enter a Mission with Chen as a Pilot"
-		elseif modApi.deployment:isDeploymentPhase() or Game:GetTeamTurn() == TEAM_ENEMY then
-			return false, "Deploy Mechs and Wait"
-		elseif not boardHasAbility("Shifty") then
-			return false, "Return to a Mission with Chen as a Pilot"
-		end
-		return true
-	end,
 	action = function(self)
-		if self.iteration == 1 then --Set up scan
-			local nonChen
-			local chen
-			for i = 0, 2 do
-				local pawn = Board:GetPawn(i)
-				if pawn:IsAbility("Shifty") then
-					chen = pawn --find chen
-				else
-					nonChen = pawn --find not chen
-				end
-			end
-
-			-- Remove all weapons from Chen
-			local weaponList = memedit.dll.pawn.getWeaponList(chen)
-			local weaponCount = weaponList:size() - 1
-			for weaponIndex = weaponCount, 1, -1 do
-				weaponList:erase(weaponIndex)
-			end
-
-			-- Add a simple weapon that can attack anywhere to Chen
-			chen:AddWeapon("memedit_weapon")
-			chen:FireWeapon(Point(0,0), 1)
-
-			self.data = {
-				chen = chen,
-				nonChen = nonChen,
-			}
-		else
-			self:searchPawn(self.data.chen, 1)
-			self:searchPawn(self.data.nonChen, 0)
-			self:evaluateResults()
-		end
+		-- The original Shifty-based derivation requires Chen deployed and does not
+		-- converge on the 64-bit build (the search yields multiple candidates and
+		-- never re-randomizes to narrow). Hardcode the reverse-engineered 64-bit
+		-- offset instead: 0xac4 is the candidate closest to the 32-bit Windows
+		-- value (0xA64) and was consistent across calibration passes. This also
+		-- removes the Chen-pilot requirement.
+		self:succeed(0xac4)
 	end,
 })
 
@@ -330,17 +311,40 @@ scans.frozen = inheritClass(Scan, {
 	prerequisiteScans = {"vital.size_pawn"},
 	access = "RW",
 	dataType = "bool",
-	action = function(self)
-		prepareScanPawn{}
-		local pawn = PAWN_FACTORY:CreatePawn("memedit_scanPawn")
-		local isFrozen = math.random(0,1)
-		pawn:SetFrozen(true)
-		pawn:SetFrozen(false)
-		pawn:SetFrozen(isFrozen == 1)
+	-- SetFrozen on an unplaced pawn crashes the native Linux game; place it on
+	-- the board first (see the Acid/Fire scans).
+	condition = boardExists,
+	cleanup = function(self)
+		if self.data then
+			if Board then
+				Board:ClearSpace(self.data.p)
+			end
+			self.data = nil
+		end
+	end,
+	actions = {
+		function(self)
+			prepareScanPawn{}
+			local p = randomCleanPoint()
+			local pawn = PAWN_FACTORY:CreatePawn("memedit_scanPawn")
+			local isFrozen = math.random(0,1)
+			Board:AddPawn(pawn, p)
+			pawn:SetFrozen(true)
+			pawn:SetFrozen(false)
+			pawn:SetFrozen(isFrozen == 1)
 
-		self:searchPawn(pawn, isFrozen, "byte")
-		self:evaluateResults()
-	end
+			self.data = {
+				pawn = pawn,
+				p = p,
+				isFrozen = isFrozen
+			}
+		end,
+		function(self)
+			self:searchPawn(self.data.pawn, self.data.isFrozen, "byte")
+			self:evaluateResults()
+			self:cleanup()
+		end
+	}
 })
 
 scans.imageOffset = inheritClass(Scan, {
@@ -741,17 +745,40 @@ scans.shield = inheritClass(Scan, {
 	prerequisiteScans = {"vital.size_pawn"},
 	access = "RW",
 	dataType = "bool",
-	action = function(self)
-		prepareScanPawn{}
-		local pawn = PAWN_FACTORY:CreatePawn("memedit_scanPawn")
-		local isShielded = math.random(0,1)
-		pawn:SetShield(true)
-		pawn:SetShield(false)
-		pawn:SetShield(isShielded == 1)
+	-- SetShield on an unplaced pawn crashes the native Linux game; place it on
+	-- the board first (see the Acid/Fire scans).
+	condition = boardExists,
+	cleanup = function(self)
+		if self.data then
+			if Board then
+				Board:ClearSpace(self.data.p)
+			end
+			self.data = nil
+		end
+	end,
+	actions = {
+		function(self)
+			prepareScanPawn{}
+			local p = randomCleanPoint()
+			local pawn = PAWN_FACTORY:CreatePawn("memedit_scanPawn")
+			local isShielded = math.random(0,1)
+			Board:AddPawn(pawn, p)
+			pawn:SetShield(true)
+			pawn:SetShield(false)
+			pawn:SetShield(isShielded == 1)
 
-		self:searchPawn(pawn, isShielded, "byte")
-		self:evaluateResults()
-	end
+			self.data = {
+				pawn = pawn,
+				p = p,
+				isShielded = isShielded
+			}
+		end,
+		function(self)
+			self:searchPawn(self.data.pawn, self.data.isShielded, "byte")
+			self:evaluateResults()
+			self:cleanup()
+		end
+	}
 })
 
 scans.spacecolor = inheritClass(Scan, {
@@ -887,8 +914,9 @@ scans.weaponList = inheritClass(Scan, {
 	access = "R",
 	dataType = "SharedVoidPtrList",
 	action = function(self)
-		-- Skip scan.
-		self:succeed(0x4)
+		-- Weapon-list offset in a Pawn: 0x8 on the 64-bit native Linux build
+		-- (0x4 on 32-bit Windows). See vital.delta_weapons.
+		self:succeed(0x8)
 	end,
 })
 

@@ -164,8 +164,9 @@ scans.tileObjSize = inheritClass(Scan, {
 
 		local delta_rows = self.scanner.output.vital.delta_rows
 		local boardAddr = memedit.dll.debug.getObjAddr(Board)
-		local rowsAddr = memedit.dll.debug.getAddrInt(boardAddr + delta_rows)
-		local tileAddr = memedit.dll.debug.getAddrInt(rowsAddr)
+		-- 64-bit: rows/tile are 8-byte pointers (getAddrLong).
+		local rowsAddr = memedit.dll.debug.getAddrLong(boardAddr + delta_rows)
+		local tileAddr = memedit.dll.debug.getAddrLong(rowsAddr)
 
 		-- tiles in a row are layed out in a sequence in memory.
 		-- 0xFFFF should at least be able to cover a few tiles,
@@ -190,8 +191,12 @@ scans.pawnWeaponListDelta = inheritClass(Scan, {
 	id = "delta_weapons",
 	name = "Pawn Weapon List Delta",
 	action = function(self)
-		-- Skip scan.
-		self:succeed(0x4)
+		-- Offset of the weapon-list std::vector<shared_ptr<Weapon>> in a Pawn.
+		-- 0x4 on the 32-bit Windows build; 0x8 on the 64-bit native Linux build
+		-- (the vtable pointer that precedes it doubled 4->8). Verified by scanning a
+		-- memedit_weaponPawn: 0x8 is the only offset holding a readable vector whose
+		-- element points to a live Weapon object.
+		self:succeed(0x8)
 	end,
 })
 
@@ -214,8 +219,10 @@ scans.weaponObjSize = inheritClass(Scan, {
 			local pawn = PAWN_FACTORY:CreatePawn("memedit_weaponPawn")
 			local pawnAddr = dll.debug.getObjAddr(pawn)
 			local weaponIndex = 1
-			local weaponListAddr = dll.debug.getAddrInt(pawnAddr + vital.delta_weapons)
-			local weaponAddr = dll.debug.getAddrInt(weaponListAddr + weaponIndex * 0x8)
+			-- 64-bit: pointers are 8 bytes (getAddrLong), and each std::shared_ptr
+			-- element is 16 bytes (object ptr + control block), so stride 0x10.
+			local weaponListAddr = dll.debug.getAddrLong(pawnAddr + vital.delta_weapons)
+			local weaponAddr = dll.debug.getAddrLong(weaponListAddr + weaponIndex * 0x10)
 			arr[#arr+1] = weaponAddr
 		end
 

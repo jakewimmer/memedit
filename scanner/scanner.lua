@@ -100,8 +100,18 @@ end
 
 function Scanner:setIterator(iterator)
 	self:destroyIterator()
-	self.iterator = iterator
-	modApi.events.onFrameDrawStart:subscribe(iterator)
+	-- Run the per-frame iterator under xpcall so a Lua error anywhere in the
+	-- scanner's frame processing is caught with a full traceback and logged,
+	-- instead of propagating as an uncaught luabind::error that crashes the game
+	-- (e.g. during new-game world generation while calibration is active).
+	local wrapped = function()
+		local ok, err = xpcall(iterator, debug.traceback)
+		if not ok then
+			LOGF("Memory Scanner - ITERATOR ERROR:\n%s", tostring(err))
+		end
+	end
+	self.iterator = wrapped
+	modApi.events.onFrameDrawStart:subscribe(wrapped)
 
 	return self
 end
@@ -218,11 +228,23 @@ function Scanner:start()
 				end
 				self.onScanCompleted:dispatch(scan)
 			else
-				local ok, instruction = scan:condition()
-				if ok then
+				-- Guard condition/action so a Lua error in a scan (e.g. a memory
+				-- read that returns nil mid-board-init) is caught and logged instead
+				-- of propagating as an uncaught luabind::error that crashes the game.
+				local condOk, ok, instruction = pcall(scan.condition, scan)
+				if not condOk then
+					LOGF("Memory Scanner - %s condition ERROR: %s",
+						scan.fullId, tostring(ok))
+					scan:fail()
+				elseif ok then
 					scan.instruction = nil
 					scan.iteration = scan.iteration + 1
-					scan:action()
+					local actOk, actErr = pcall(scan.action, scan)
+					if not actOk then
+						LOGF("Memory Scanner - %s action ERROR: %s",
+							scan.fullId, tostring(actErr))
+						scan:fail()
+					end
 				else
 					scan.instruction = instruction
 				end
