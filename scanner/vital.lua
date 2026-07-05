@@ -61,8 +61,9 @@ scans.boardObjSize = inheritClass(Scan, {
 	end,
 	action = function(self)
 		if true then
-			-- 100% accuracy is not needed. Skip it.
-			self:succeed(0x7518)
+			-- sizeof(Board) = 0x75a8 (30120), from operator new at Board's
+			-- allocation sites on the 64-bit native Linux build.
+			self:succeed(0x75a8)
 			return
 		end
 
@@ -96,23 +97,11 @@ scans.tileRows = inheritClass(Scan, {
 	name = "Tile Rows",
 	condition = boardExists,
 	action = function(self)
-		local boardAddr = memedit.dll.debug.getObjAddr(TipImageBoard or Board)
-		local size = Board:GetSize()
-
-		-- 0xFFF is well under the object size,
-		-- but still a very high estimate.
-		-- The value we are searching for should
-		-- be somewhere close to 0x50.
-		for i = 0x8, 0xFFF do
-			local x = memedit.dll.debug.getAddrInt(boardAddr + i - 0x8)
-			local y = memedit.dll.debug.getAddrInt(boardAddr + i - 0x4)
-			if x == size.x and y == size.y then
-				self:succeed(i)
-				return
-			end
-		end
-
-		self:fail()
+		-- On the 64-bit native Linux build Board::GetTerrain computes a tile
+		-- address as *(board + 0x98) -> outer column array; the board x/y size
+		-- no longer precedes it, so the old scan cannot find it. 0x98 is the
+		-- column vector's begin-pointer offset, derived statically.
+		self:succeed(0x98)
 	end
 })
 
@@ -125,7 +114,7 @@ scans.tileRowStep = inheritClass(Scan, {
 	name = "Tile Row Step",
 	action = function(self)
 		-- Skip scan.
-		self:succeed(0xC)
+		self:succeed(0x18)  -- inter-column stride sizeof(vector<BoardSpace>)
 	end,
 })
 
@@ -141,45 +130,9 @@ scans.tileObjSize = inheritClass(Scan, {
 	prerequisiteScans = {"vital.delta_rows"},
 	condition = boardExists,
 	action = function(self)
-		local pawns = Board:GetPawns(TEAM_ANY)
-
-		for i = 1, pawns:size() do
-			local pawnId = pawns:index(i)
-			local pawn = Board:GetPawn(pawnId)
-
-			if pawnId > 2 then
-				Board:RemovePawn(pawn)
-			else
-				local reloc = Point(7,7-pawnId)
-				pawn:SetSpace(reloc)
-			end
-		end
-
-		for i, p in ipairs(Board) do
-			if not Board:IsPawnSpace(p) then
-				Board:ClearSpace(p)
-				Board:SetItem(p, "memedit_scanItem")
-			end
-		end
-
-		local delta_rows = self.scanner.output.vital.delta_rows
-		local boardAddr = memedit.dll.debug.getObjAddr(Board)
-		-- 64-bit: rows/tile are 8-byte pointers (getAddrLong).
-		local rowsAddr = memedit.dll.debug.getAddrLong(boardAddr + delta_rows)
-		local tileAddr = memedit.dll.debug.getAddrLong(rowsAddr)
-
-		-- tiles in a row are layed out in a sequence in memory.
-		-- 0xFFFF should at least be able to cover a few tiles,
-		-- and we should be able to find the item string several times.
-		-- We can then measure the distance between each occurance
-		-- to find the tile object size.
-		self:search(tileAddr, 0, 0xFFFF, "memedit_scanItem", "string")
-
-		if #self.results > 1 then
-			self:succeed(findSmallestGap(self.results))
-		else
-			self:fail()
-		end
+		-- sizeof(BoardSpace) = 0x2a78 (10872): element stride confirmed in
+		-- Board::GetTerrain (imul $0x2a78) and the vector<BoardSpace> growth path.
+		self:succeed(0x2a78)
 	end,
 })
 
