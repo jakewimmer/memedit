@@ -1,21 +1,433 @@
 -- Persistent Data
--- Linux field-offset table for memedit, keyed by game version.
---
--- Offsets are ABI-specific and are NOT the same file as the Windows
--- "__addresses.lua". This table is populated by running memedit's in-game
--- calibration on Linux (Mod Config -> memedit -> Calibrate) while in a mission;
--- the scanner derives each offset by manipulating a known field and locating
--- the byte that changes, then writes the results here. See
--- tools/derive_offsets/README.md for the regeneration procedure.
---
--- Shipped empty so memedit boots uncalibrated and prompts for calibration on
--- Linux rather than reading unvalidated offsets. Do not hand-copy the Windows
--- offsets in as "calibrated" -- wrong offsets read/write arbitrary memory.
 local multiRefObjects = {
 
 } -- multiRefObjects
 local obj1 = {
 	["1.2.93"] = {
+		["board"] = {
+			["AttackOrder"] = {
+				[1] = 11656;
+				[2] = 0;
+				[3] = 0;
+			};
+			["HighlightedX"] = {
+				[1] = 11064;
+				[2] = 0;
+				[3] = 0;
+			};
+			["HighlightedY"] = {
+				[1] = 11068;
+				[2] = 0;
+				[3] = 0;
+			};
+		};
+		["game"] = {
+			["Resist"] = {
+				[1] = 49612;
+				[2] = 2;
+				[3] = 0;
+			};
+		};
+		["pawn"] = {
+			["Acid"] = {
+				[1] = 2307;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Active"] = {
+				[1] = 2396;
+				[2] = 2;
+				[3] = 3;
+			};
+			["BaseMaxHealth"] = {
+				[1] = 2528;
+				[2] = 2;
+				[3] = 0;
+			};
+			["BonusMove"] = {
+				[1] = 2756;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Boosted"] = {
+				[1] = 2309;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Class"] = {
+				[1] = 2568;
+				[2] = 2;
+				[3] = 5;
+			};
+			["Corpse"] = {
+				[1] = 4016;
+				[2] = 2;
+				[3] = 3;
+			};
+			["CustomAnim"] = {
+				[1] = 4040;
+				[2] = 2;
+				[3] = 5;
+			};
+			["DefaultFaction"] = {
+				[1] = 4304;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Fire"] = {
+				[1] = 2304;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Flying"] = {
+				[1] = 4896;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Frozen"] = {
+				[1] = 2305;
+				[2] = 2;
+				[3] = 3;
+			};
+			["ImageOffset"] = {
+				[1] = 2560;
+				[2] = 2;
+				[3] = 0;
+			};
+			["ImpactMaterial"] = {
+				[1] = 4032;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Invisible"] = {
+				[1] = 2624;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Jumper"] = {
+				[1] = 4904;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Leader"] = {
+				[1] = 4900;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Massive"] = {
+				[1] = 2549;
+				[2] = 2;
+				[3] = 3;
+			};
+			["MaxHealth"] = {
+				[1] = 2244;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Mech"] = {
+				[1] = 2612;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Minor"] = {
+				[1] = 4336;
+				[2] = 2;
+				[3] = 3;
+			};
+			["MissionCritical"] = {
+				[1] = 4310;
+				[2] = 2;
+				[3] = 3;
+			};
+			["MoveSpeed"] = {
+				[1] = 2536;
+				[2] = 2;
+				[3] = 0;
+			};
+			["MovementSpent"] = {
+				[1] = 2550;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Mutation"] = {
+				[1] = 4360;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Neutral"] = {
+				[1] = 2508;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Owner"] = {
+				[1] = 4908;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Powered"] = {
+				[1] = 4308;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Pushable"] = {
+				[1] = 2398;
+				[2] = 2;
+				[3] = 3;
+			};
+			["QueuedTargetX"] = {
+				[1] = 48;
+				[2] = 2;
+				[3] = 0;
+			};
+			["QueuedTargetY"] = {
+				[1] = 52;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Shield"] = {
+				[1] = 2308;
+				[2] = 2;
+				[3] = 3;
+			};
+			["SpaceColor"] = {
+				[1] = 4048;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Team"] = {
+				[1] = 208;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Teleporter"] = {
+				[1] = 4897;
+				[2] = 2;
+				[3] = 3;
+			};
+			["UndoX"] = {
+				[1] = 2720;
+				[2] = 2;
+				[3] = 0;
+			};
+			["UndoY"] = {
+				[1] = 2724;
+				[2] = 2;
+				[3] = 0;
+			};
+			["WeaponList"] = {
+				[1] = 8;
+				[2] = 0;
+				[3] = 7;
+			};
+		};
+		["spaceDamage"] = {
+			["Acid"] = 40;
+			["AnimState"] = {
+				[1] = 52;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Animation"] = 56;
+			["Crack"] = 44;
+			["Damage"] = 8;
+			["Delay"] = 124;
+			["Evacuate"] = 123;
+			["Fire"] = 24;
+			["Frozen"] = 28;
+			["GrappleAnim"] = {
+				[1] = 168;
+				[2] = 2;
+				[3] = 5;
+			};
+			["GrappleTargetX"] = {
+				[1] = 176;
+				[2] = 2;
+				[3] = 0;
+			};
+			["GrappleTargetY"] = {
+				[1] = 180;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Hide"] = 120;
+			["HideIcon"] = 122;
+			["HidePath"] = 121;
+			["ImageMark"] = 80;
+			["Injure"] = 32;
+			["Item"] = 184;
+			["KO_Effect"] = 48;
+			["MoveType"] = {
+				[1] = 152;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Pawn"] = 104;
+			["PawnTeam"] = 112;
+			["ProjectileArt"] = {
+				[1] = 72;
+				[2] = 2;
+				[3] = 5;
+			};
+			["Push"] = 12;
+			["Script"] = 160;
+			["Shield"] = 16;
+			["SimpleMark"] = 20;
+			["Smoke"] = 36;
+			["Sound"] = 64;
+			["SourceX"] = {
+				[1] = 92;
+				[2] = 2;
+				[3] = 0;
+			};
+			["SourceY"] = {
+				[1] = 96;
+				[2] = 2;
+				[3] = 0;
+			};
+			["TargetX"] = 0;
+			["TargetY"] = 4;
+			["Terrain"] = 156;
+			["Type"] = {
+				[1] = 88;
+				[2] = 2;
+				[3] = 0;
+			};
+		};
+		["tile"] = {
+			["Acid"] = {
+				[1] = 10665;
+				[2] = 2;
+				[3] = 3;
+			};
+			["FireType"] = {
+				[1] = 10660;
+				[2] = 2;
+				[3] = 2;
+			};
+			["Frozen"] = {
+				[1] = 10561;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Health"] = {
+				[1] = 168;
+				[2] = 2;
+				[3] = 0;
+			};
+			["Highlighted"] = {
+				[1] = 9728;
+				[2] = 0;
+				[3] = 3;
+			};
+			["Item"] = {
+				[1] = 10672;
+				[2] = 1;
+				[3] = 5;
+			};
+			["MaxHealth"] = {
+				[1] = 172;
+				[2] = 2;
+				[3] = 0;
+			};
+			["PeopleEvacuated"] = {
+				[1] = 9932;
+				[2] = 2;
+				[3] = 0;
+			};
+			["PeoplePopulated"] = {
+				[1] = 9928;
+				[2] = 2;
+				[3] = 0;
+			};
+			["RubbleType"] = {
+				[1] = 152;
+				[2] = 2;
+				[3] = 2;
+			};
+			["Shield"] = {
+				[1] = 10564;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Smoke"] = {
+				[1] = 10689;
+				[2] = 2;
+				[3] = 3;
+			};
+			["Terrain"] = {
+				[1] = 10648;
+				[2] = 2;
+				[3] = 0;
+			};
+			["TerrainIcon"] = {
+				[1] = 9624;
+				[2] = 2;
+				[3] = 5;
+			};
+			["UniqueBuildingName"] = {
+				[1] = 9912;
+				[2] = 2;
+				[3] = 5;
+			};
+		};
+		["vital"] = {
+			["delta_rows"] = 152;
+			["delta_weapons"] = 8;
+			["size_board"] = 30120;
+			["size_game"] = 65535;
+			["size_pawn"] = 8208;
+			["size_space_damage"] = 272;
+			["size_tile"] = 10872;
+			["size_weapon"] = 512;
+			["step_rows"] = 24;
+		};
+		["weapon"] = {
+			["BaseType"] = {
+				[1] = 0;
+				[2] = 0;
+				[3] = 5;
+			};
+			["Class"] = {
+				[1] = 416;
+				[2] = 2;
+				[3] = 5;
+			};
+			["LimitedRemaining"] = {
+				[1] = 296;
+				[2] = 2;
+				[3] = 0;
+			};
+			["LimitedUses"] = {
+				[1] = 304;
+				[2] = 2;
+				[3] = 0;
+			};
+			["PowerCost"] = {
+				[1] = 300;
+				[2] = 2;
+				[3] = 0;
+			};
+			["PowerList"] = {
+				[1] = 384;
+				[2] = 0;
+				[3] = 6;
+			};
+			["Type"] = {
+				[1] = 272;
+				[2] = 0;
+				[3] = 5;
+			};
+			["UpgradeListA"] = {
+				[1] = 312;
+				[2] = 0;
+				[3] = 6;
+			};
+			["UpgradeListB"] = {
+				[1] = 344;
+				[2] = 0;
+				[3] = 6;
+			};
+		};
 	};
 }
 return obj1
